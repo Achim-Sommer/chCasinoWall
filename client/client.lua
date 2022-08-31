@@ -1,14 +1,13 @@
 local inCasino              = false
 local videoWallRenderTarget = nil
 local showBigWin            = false
-
 --
 -- Threads
 --
 
+
+
 function startCasinoThreads()
-    local interior = GetInteriorAtCoords(GetEntityCoords(GetPlayerPed(-1)))
-    while not IsInteriorReady(interior) do Citizen.Wait(10) end
     RequestStreamedTextureDict('Prop_Screen_Vinewood')
 
     while not HasStreamedTextureDictLoaded('Prop_Screen_Vinewood') do
@@ -102,4 +101,39 @@ AddEventHandler(Config.BigWinEvent, function()
     end
 
     showBigWin = true
+end)
+
+--RegisterCommand('ontest', function()
+--    TriggerEvent(Config.EnterEvent)
+--end)
+
+--RegisterCommand('offtest', function()
+--    TriggerEvent(Config.ExitEvent)
+--end)
+
+RegisterCommand('wintest', function()
+    TriggerEvent(Config.BigWinEvent)
+end)
+
+CreateThread(function()
+    local casinoCoords = vector3(945.85, 41.58, 75.82)
+    while true do
+        local pCoords = GetEntityCoords(PlayerPedId())
+        if #(pCoords - casinoCoords) < 100.0 then
+            if not inCasino then
+                TriggerEvent(Config.EnterEvent)
+                print("Entered Casino area")
+                InCasino = true
+            end
+        else
+            if inCasino then
+                TriggerEvent(Config.ExitEvent)
+                print("Exited Casino area")
+                InCasino = false
+                Wait(5000)
+                startCasinoThreads()
+            end
+        end
+        Wait(1000)
+    end
 end)
